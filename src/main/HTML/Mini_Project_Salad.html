@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>헤더, 바디, 푸터 예제</title>
+  <style>
+      /* 스타일링은 여기에 추가할 수 있습니다. */
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          position: relative;
+      }
+
+      header, footer {
+          background-color: darkseagreen;
+          color: #fff;
+          text-align: center;
+          padding: 1em;
+      }
+
+      nav {
+          background-color: #444;
+          padding: 10px;
+          text-align: center;
+      }
+
+      nav a {
+          color: #fff;
+          text-decoration: none;
+          padding: 10px;
+          margin: 0 10px;
+          display: inline-block;
+      }
+
+      main {
+          padding: 20px;
+          display: flex; /* 이미지들을 가로로 정렬하기 위한 설정 */
+          flex-wrap: wrap; /* 이미지들이 가로로 꽉 차면 줄바꿈 */
+          align-items: flex-start; /* 이미지들을 세로 정렬의 시작점에서 시작하도록 설정 */
+          justify-content: center; /* 이미지들을 수평으로 가운데 정렬 */
+      }
+
+      /* 우측 상단 메뉴 스타일링 */
+      .top-menu {
+          position: absolute;
+          top: 0;
+          right: 0;
+          padding: 10px;
+      }
+
+      .top-menu a {
+          color: #fff;
+          text-decoration: none;
+          font-size: 12px;
+          margin-left: 10px;
+      }
+
+      /* 이미지 스타일링 */
+      main div {
+          flex: 0 0 30%; /* 이미지를 가로로 나열하되 간격을 조절 */
+          margin-right: 10px; /* 오른쪽 간격 조절 */
+          margin-bottom: 20px; /* 아래쪽 간격 조절 */
+          text-align: center; /* 텍스트를 중앙 정렬 */
+      }
+
+      main img {
+          max-width: 100%; /* 이미지가 부모 요소의 크기를 초과하지 않도록 설정 */
+          height: auto; /* 가로세로 비율 유지 */
+          max-height: 150px; /* 이미지의 최대 높이 설정 */
+      }
+
+      /* 검색창 스타일링 */
+      .search-bar {
+          text-align: center;
+          margin: 20px 0;
+      }
+
+      .search-bar input {
+          padding: 10px;
+          border: 1px solid #444;
+      }
+
+      .search-bar button {
+          background-color: #444;
+          color: #fff;
+          border: none;
+          padding: 10px;
+          cursor: pointer;
+      }
+
+      /* 고객센터 버튼 스타일링 */
+      .customer-service {
+          text-align: center;
+          margin-top: 20px;
+      }
+
+      .customer-service a {
+          color: #fff;
+          text-decoration: none;
+          padding: 10px;
+          margin: 0 10px;
+          display: inline-block;
+      }
+
+      /* 사이드바 버튼 스타일링 */
+      #topBtn {
+          display: none;
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background-color: #55aaff; /* 변경된 색상 */
+          color: #fff;
+          border: none;
+          padding: 10px;
+          cursor: pointer;
+          border-radius: 5px; /* 둥근 모서리 추가 */
+      }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>우리 인재개발 샐러드 </h1>
+  <nav>
+    <a href="#">Best메뉴</a>
+    <a href="#">신상품</a>
+    <a href="#">포케</a>
+    <a href="#">샐러드</a>
+    <a href="#">이벤트</a>
+  </nav>
+
+  <!-- 우측 상단 메뉴 스타일링 -->
+  <div class="top-menu">
+    <a href="#">로그인</a>
+    <a href="#">회원가입</a>
+    <a href="#">장바구니</a>
+    <a href="#">고객센터</a>
+  </div>
+</header>
+
+<main>
+  <h1 style="text-align: center">카테고리별 BEST !</h1>
+  <div></div>
+  <div></div>
+
+  <div>
+    <a href="https://src.hidoc.co.kr/image/lib/2023/9/14/1694679858306_0.png">
+      <img src="https://src.hidoc.co.kr/image/lib/2023/9/14/1694679858306_0.png">
+    </a>
+    <p>엄청 맛있는 샐러드</p>
+    <p>8,900원</p>
+  </div>
+
+  <div>
+    <a href="https://health.chosun.com/site/data/img_dir/2021/05/06/2021050601029_0.jpg">
+      <img src="https://health.chosun.com/site/data/img_dir/2021/05/06/2021050601029_0.jpg">
+    </a>
+    <p>어쩌고저쩌고 샐러드</p>
+    <p>11,000원</p>
+  </div>
+
+  <div>
+    <a href="https://t1.daumcdn.net/thumb/R720x0/?fname=http://t1.daumcdn.net/brunch/service/user/2a4t/image/w_yQeuiLSMJCqBEn7wiD__r07T4.jpg">
+      <img src="https://t1.daumcdn.net/thumb/R720x0/?fname=http://t1.daumcdn.net/brunch/service/user/2a4t/image/w_yQeuiLSMJCqBEn7wiD__r07T4.jpg">
+    </a>
+    <p>그린그린 샐러드</p>
+    <p>10,000원</p>
+  </div>
+
+  <div>
+    <a href="https://t1.daumcdn.net/thumb/R720x0/?fname=http://t1.daumcdn.net/brunch/service/user/2a4t/image/w_yQeuiLSMJCqBEn7wiD__r07T4.jpg">
+      <img src="https://t1.daumcdn.net/thumb/R720x0/?fname=http://t1.daumcdn.net/brunch/service/user/2a4t/image/w_yQeuiLSMJCqBEn7wiD__r07T4.jpg">
+    </a>
+    <p>그린그린 샐러드</p>
+    <p>10,000원</p>
+  </div>
+
+  <!-- 검색창 이동 -->
+  <div class="search-bar">
+    <input type="text" placeholder="검색어를 입력하세요">
+    <button type="button">검색</button>
+  </div>
+
+  <!-- 고객센터 버튼 이동 -->
+  <div class="customer-service">
+    <a href="#">고객센터</a>
+  </div>
+</main>
+
+<footer>
+  <p>일상에서 만나는 가벼움 - 우리 쌜러드<br>
+    <br>
+    회사명 : 우리인재개발
+    사업자번호 : 3152151-5114-1515
+    대표전화 1688-3415 (점심시간 13:00~14:00)<br>
+    <br>
+    &copy; 2024</p>
+</footer>
+
+<!-- 사이드바 Top 버튼 -->
+<button onclick="topFunction()" id="topBtn" title="Go to top">Top</button>
+
+<script>
+    // 스크롤이 일정 위치 이상으로 내려갔을 때 Top 버튼 보이기
+    window.onscroll = function() {scrollFunction()};
+
+    function scrollFunction() {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            document.getElementById("topBtn").style.display = "block";
+        } else {
+            document.getElementById("topBtn").style.display = "none";
+        }
+    }
+
+    // Top 버튼 클릭 시 페이지 맨 위로 이동
+    function topFunction() {
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }
+</script>
+
+</body>
+</html>
