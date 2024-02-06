@@ -1,14 +1,14 @@
 package com.woori.jdbc.board;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.woori.jdbc.board.Article;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class App {
+
   List<Article> articles;
   int articleLastId;
 
@@ -18,57 +18,141 @@ public class App {
   }
 
   public void run() {
-
-    System.out.println(" == JDBC 게시판 프로그램 == ");
+    System.out.println("== JDBC 게시판 프로그램 ==");
     Scanner sc = new Scanner(System.in);
 
     while (true) {
-      System.out.printf("명령 ) ");
+      System.out.printf("명령) ");
       String cmd = sc.nextLine();
 
-      if (cmd.equals("/user/article/write")) {
+      if(cmd.equals("/usr/article/write")) {
         System.out.println("== 게시물 작성 ==");
         System.out.printf("제목 : ");
         String title = sc.nextLine();
+
         System.out.printf("내용 : ");
         String body = sc.nextLine();
 
         int id = ++articleLastId;
 
+        // JDBC 드라이버 클래스 이름
         String jdbcDriver = "com.mysql.cj.jdbc.Driver";
-        String url = "jdbc:mysql://127.0.0.1:3306/text_board?useUnicode=true&characterEncoding=UTF-8";
-        String user = "root";
+
+        // 데이터베이스 연결 정보
+        String url = "jdbc:mysql://127.0.0.1:3306/text_board?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul&useOldAliasMetadataBehavior=true&zeroDateTimeNehavior=convertToNull";
+        String username = "root";
         String password = "";
 
         Connection conn = null;
-        PreparedStatement ps = null;
+        PreparedStatement pstat = null;
 
         try {
+          // JDBC 드라이버 로드
           Class.forName(jdbcDriver);
 
-          conn = DriverManager.getConnection(url, user, password);
+          // 데이터베이스에 연결
+          conn = DriverManager.getConnection(url, username, password);
 
           String sql = "INSERT INTO article";
           sql += " SET regDate = NOW()";
           sql += ", updateDate = NOW()";
-          sql += ", title = \"" + title + "\"";
-          sql += ", body = \"" + body + "\"";
+          sql += ", title = \"" + title + "\""; // title = "제목"
+          sql += ", `body` = \"" + body + "\"";
 
-          ps = conn.prepareStatement(sql);
-          int affectedRows = ps.executeUpdate();
+          pstat = conn.prepareStatement(sql);
+          int affectedRows = pstat.executeUpdate();
 
           System.out.println("affectedRows : " + affectedRows);
 
         } catch (ClassNotFoundException e) {
           System.out.println("드라이버 로딩 실패");
         } catch (SQLException e) {
-          System.out.println("에러: " + e);
+          System.out.println("에러 : " + e);
         } finally {
           try {
-            if (ps != null && !ps.isClosed()) {
-              ps.close();
-            }
             if (conn != null && !conn.isClosed()) {
+              // 연결 닫기
+              conn.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+          try {
+            if (pstat != null && !pstat.isClosed()) {
+              pstat.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+        }
+
+        Article article = new Article(id, title, body);
+        articles.add(article);
+
+        System.out.printf("%d번 게시물이 작성되었습니다.\n", id);
+      }
+      else if(cmd.equals("/usr/article/list")) {
+        System.out.println("== 게시물 리스트 ==");
+
+        // JDBC 드라이버 클래스 이름
+        String jdbcDriver = "com.mysql.cj.jdbc.Driver";
+
+        // 데이터베이스 연결 정보
+        String url = "jdbc:mysql://127.0.0.1:3306/text_board?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul&useOldAliasMetadataBehavior=true&zeroDateTimeNehavior=convertToNull";
+        String username = "root";
+        String password = "";
+
+        Connection conn = null;
+        PreparedStatement pstat = null;
+        ResultSet rs = null;
+
+        try {
+          // JDBC 드라이버 로드
+          Class.forName(jdbcDriver);
+
+          // 데이터베이스에 연결
+          conn = DriverManager.getConnection(url, username, password);
+
+          String sql = "SELECT *";
+          sql += " FROM article";
+          sql += " ORDER BY id DESC;";
+
+          pstat = conn.prepareStatement(sql);
+          rs = pstat.executeQuery(sql);
+
+          while (rs.next()) {
+            int id = rs.getInt("id");
+            String regDate = rs.getString("regDate");
+            String updateDate = rs.getString("updateDate");
+            String title = rs.getString("title");
+            String body = rs.getString("body");
+
+            Article article = new Article(id, regDate, updateDate, title, body);
+            articles.add(article);
+          }
+
+        } catch (ClassNotFoundException e) {
+          System.out.println("드라이버 로딩 실패");
+        } catch (SQLException e) {
+          System.out.println("에러 : " + e);
+        } finally {
+          try {
+            if (rs != null && !rs.isClosed()) {
+              rs.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+          try {
+            if (pstat != null && !pstat.isClosed()) {
+              pstat.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+          try {
+            if (conn != null && !conn.isClosed()) {
+              // 연결 닫기
               conn.close();
             }
           } catch (SQLException e) {
@@ -76,42 +160,31 @@ public class App {
           }
         }
 
-
-        Article article = new Article(id, title, body );
-        articles.add(article);
-
-        System.out.println("입력된 게시물 : " + article);
-
-        System.out.printf("%d번 게시물이 작성되었습니다.\n", id);
-
-      } else if (cmd.equals("/user/article/list")) {
-        System.out.println("== 게시물 리스트 ==");
-        if (articles.isEmpty()) {
+        if(articles.isEmpty()) {
           System.out.println("게시물이 존재하지 않습니다.");
           continue;
         }
 
-       /* for (Article article : articles) {
+        System.out.println("번호 / 제목");
+        for(Article article : articles) {
           System.out.printf("%d / %s\n", article.id, article.title);
-        }*/
-
-        //역순으로 출력(최신게시물부터)
-        for (int i = articles.size() - 1; i >= 0; i--) {
+        }
+        /*
+        for(int i = articles.size() - 1; i >= 0; i--) {
           Article article = articles.get(i);
           System.out.printf("%d / %s\n", article.id, article.title);
         }
-
-        /*for(Article article:articles){
-          System.out.printf("%d , %s\n ", article.id , article.title);
-        }*/
-
-      } else if (cmd.equals("exit")) {
-        System.out.println("게시판 프로그램을 종료합니다.");
+        */
+      }
+      else if(cmd.equals("exit")) {
+        System.out.println("== 프로그램을 종료합니다 ==");
         break;
-      } else {
+      }
+      else {
         System.out.println("명령어를 잘못 입력하셨습니다.");
       }
     }
+
     sc.close();
   }
 }
