@@ -22,10 +22,15 @@ public class App {
     Scanner sc = new Scanner(System.in);
 
     while (true) {
+
+
+
       System.out.printf("명령) ");
       String cmd = sc.nextLine().trim();
 
-      if (cmd.equals("/usr/article/write")) {
+      Rq rq = new Rq(cmd);
+
+      if (rq.getUrlPath().equals("/usr/article/write")) {
         System.out.println("== 게시물 작성 ==");
         System.out.printf("제목 : ");
         String title = sc.nextLine();
@@ -90,7 +95,7 @@ public class App {
         articles.add(article);
 
         System.out.printf("%d번 게시물이 작성되었습니다.\n", id);
-      } else if (cmd.equals("/usr/article/list")) {
+      } else if (rq.getUrlPath().equals("/usr/article/list")) {
         System.out.println("== 게시물 리스트 ==");
 
         // JDBC 드라이버 클래스 이름
@@ -175,6 +180,72 @@ public class App {
           System.out.printf("%d / %s\n", article.id, article.title);
         }
         */
+      } else if (rq.getUrlPath().equals("/usr/article/modify")) {
+        int id = rq.getIntParam("id",0);
+
+        if(id == 0){
+          System.out.println("id를 올바르게 입력하시오");
+          continue;
+        }
+
+        System.out.printf("새제목 : ");
+        String title = sc.nextLine();
+        System.out.printf("새내용 : ");
+        String body = sc.nextLine();
+
+        String jdbcDriver = "com.mysql.cj.jdbc.Driver";
+
+        // 데이터베이스 연결 정보
+        String url = "jdbc:mysql://127.0.0.1:3306/text_board?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul&useOldAliasMetadataBehavior=true&zeroDateTimeNehavior=convertToNull";
+        String username = "root";
+        String password = "";
+
+        Connection conn = null;
+        PreparedStatement pstat = null;
+
+        try {
+          // JDBC 드라이버 로드
+          Class.forName(jdbcDriver);
+
+          // 데이터베이스에 연결
+          conn = DriverManager.getConnection(url, username, password);
+
+          String sql = "UPDATE article";
+          sql += " SET updateDate = NOW()";
+          sql += ", title = \"" + title + "\""; // title = "제목"
+          sql += ", `body` = \"" + body + "\"";
+          sql += " WHERE id = " + id;
+
+
+          pstat = conn.prepareStatement(sql);
+          pstat.executeUpdate();
+
+          System.out.println("sql : " + sql);
+
+        } catch (ClassNotFoundException e) {
+          System.out.println("드라이버 로딩 실패");
+        } catch (SQLException e) {
+          System.out.println("에러 : " + e);
+        } finally {
+          try {
+            if (pstat != null && !pstat.isClosed()) {
+              pstat.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+          try {
+            if (conn != null && !conn.isClosed()) {
+              // 연결 닫기
+              conn.close();
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+          }
+        }
+
+        System.out.printf("%d번 게시물이 수정되었다네\n",id);
+
       } else if (cmd.equals("exit")) {
         System.out.println("== 프로그램을 종료합니다 ==");
         break;
