@@ -23,9 +23,9 @@ public class App {
 
     while (true) {
       System.out.printf("명령) ");
-      String cmd = sc.nextLine();
+      String cmd = sc.nextLine().trim();
 
-      if(cmd.equals("/usr/article/write")) {
+      if (cmd.equals("/usr/article/write")) {
         System.out.println("== 게시물 작성 ==");
         System.out.printf("제목 : ");
         String title = sc.nextLine();
@@ -90,8 +90,7 @@ public class App {
         articles.add(article);
 
         System.out.printf("%d번 게시물이 작성되었습니다.\n", id);
-      }
-      else if(cmd.equals("/usr/article/list")) {
+      } else if (cmd.equals("/usr/article/list")) {
         System.out.println("== 게시물 리스트 ==");
 
         // JDBC 드라이버 클래스 이름
@@ -127,7 +126,7 @@ public class App {
             String title = rs.getString("title");
             String body = rs.getString("body");
 
-            Article article = new Article(id, regDate, updateDate, title, body);
+            Article article = new Article(id,title, body);
             articles.add(article);
           }
 
@@ -160,14 +159,15 @@ public class App {
           }
         }
 
-        if(articles.isEmpty()) {
+        if (articles.isEmpty()) {
           System.out.println("게시물이 존재하지 않습니다.");
           continue;
         }
 
-        System.out.println("번호 / 제목");
-        for(Article article : articles) {
-          System.out.printf("%d / %s\n", article.id, article.title);
+
+        System.out.println("번호 / 제목 / 내용 ");
+        for (Article article : articles) {
+          System.out.printf("%d / %s / %s\n", article.id, article.title, article.body);
         }
         /*
         for(int i = articles.size() - 1; i >= 0; i--) {
@@ -175,16 +175,13 @@ public class App {
           System.out.printf("%d / %s\n", article.id, article.title);
         }
         */
-      }
-      else if(cmd.equals("exit")) {
+      } else if (cmd.equals("exit")) {
         System.out.println("== 프로그램을 종료합니다 ==");
         break;
-      }
-      else {
+      } else {
         System.out.println("명령어를 잘못 입력하셨습니다.");
       }
     }
-
     sc.close();
   }
 }
