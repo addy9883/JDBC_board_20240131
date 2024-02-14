@@ -1,120 +1,78 @@
 package com.woori.jdbc.board;
 
-import java.sql.*;
+import com.woori.jdbc.board.util.MysqlUtil;
+import com.woori.jdbc.board.util.SecSql;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class App {
 
-  List<Article> articles;
-  int articleLastId;
+  public List<Article> articles;
 
   public App() {
     articles = new ArrayList<>();
-    articleLastId = 0;
+  }
+
+  private static boolean isDevMode() {
+    // 이 부분을 false로 바꾸면 production 모드 이다.
+    return true;
   }
 
   public void run() {
     System.out.println("== JDBC 게시판 프로그램 ==");
-
     Scanner sc = new Scanner(System.in);
-    Connection conn = null;
 
     while (true) {
       System.out.printf("명령) ");
-      String cmd = sc.nextLine().trim();
+      String cmd = sc.nextLine();
       Rq rq = new Rq(cmd);
 
-      // JDBC 드라이버 로드 / DB 연결 시작
-      String jdbcDriver = "com.mysql.cj.jdbc.Driver";
+      // DB 세팅
+      MysqlUtil.setDBInfo("localhost", "root", "", "text_board");
+      MysqlUtil.setDevMode(isDevMode());
 
-      // 데이터베이스 연결 정보
-      String url = "jdbc:mysql://127.0.0.1:3306/text_board?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul&useOldAliasMetadataBehavior=true&zeroDateTimeNehavior=convertToNull";
-      String username = "root";
-      String password = "";
-
-      try {
-        // JDBC 드라이버 로드
-        Class.forName(jdbcDriver);
-
-        // 데이터베이스에 연결
-        conn = DriverManager.getConnection(url, username, password);
-
-        doAction(conn, sc,cmd, rq);
-
-      } catch (ClassNotFoundException e) {
-        System.out.println("드라이버 로딩 실패");
-      } catch (SQLException e) {
-        System.out.println("에러 : " + e);
-      } finally {
-        try {
-          if (conn != null && !conn.isClosed()) {
-            // 연결 닫기
-            conn.close();
-          }
-        } catch (SQLException e) {
-          e.printStackTrace();
-        }
-      }
+      // 명령 로직 실행
+      doAction(sc, rq);
     }
   }
 
-  private void doAction(Connection conn, Scanner sc, String cmd, Rq rq) {
+  private void doAction(Scanner sc, Rq rq) {
     if (rq.getUrlPath().equals("/usr/article/write")) {
-      writeArticle(conn, sc);
+      System.out.println("== 게시물 작성 ==");
+      System.out.printf("제목 : ");
+      String title = sc.nextLine();
 
+      System.out.printf("내용 : ");
+      String body = sc.nextLine();
+
+      SecSql sql = new SecSql();
+      sql.append("INSERT INTO article");
+      sql.append("SET regDate = NOW()");
+      sql.append(", updateDate = NOW()");
+      sql.append(", title = ?", title);
+      sql.append(", `body` = ?", body);
+
+      int id = MysqlUtil.insert(sql);
+
+      Article article = new Article(id, title, body);
+      articles.add(article);
+
+      System.out.printf("%d번 게시물이 작성되었습니다.\n", id);
     } else if (rq.getUrlPath().equals("/usr/article/list")) {
-      showArticleList(conn);
+      System.out.println("== 게시물 리스트 ==");
 
-    } else if (rq.getUrlPath().equals("/usr/article/modify")) {
-      modifyArticle(conn, sc, rq);
+      SecSql sql = new SecSql();
+      sql.append("SELECT *");
+      sql.append("FROM article");
+      sql.append("ORDER BY id DESC");
 
-    } else if (rq.getUrlPath().equals("exit")) {
-      System.out.println("== 프로그램을 종료합니다 ==");
-      System.exit(0);
+      List<Map<String, Object>> articlesListMap = MysqlUtil.selectRows(sql);
 
-    } else {
-      System.out.println("명령어를 잘못 입력하셨습니다.");
-    }
-  }
-
-  private void writeArticle(Connection conn, Scanner sc) {
-    System.out.println("== 게시물 작성 ==");
-    System.out.printf("제목 : ");
-    String title = sc.nextLine();
-
-    System.out.printf("내용 : ");
-    String body = sc.nextLine();
-
-    String sql = "INSERT INTO article";
-    sql += " SET regDate = NOW()";
-    sql += ", updateDate = NOW()";
-    sql += ", title = \"" + title + "\"";
-    sql += ", `body` = \"" + body + "\"";
-
-    try (PreparedStatement pstat = conn.prepareStatement(sql)) {
-      pstat.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("에러 : " + e);
-    }
-  }
-
-  private void showArticleList(Connection conn) {
-    System.out.println("== 게시물 리스트 ==");
-
-    String sql = "SELECT * FROM article ORDER BY id DESC;";
-    try (PreparedStatement pstat = conn.prepareStatement(sql);
-         ResultSet rs = pstat.executeQuery()) {
-
-      List<Article> articles = new ArrayList<>();
-      while (rs.next()) {
-        int id = rs.getInt("id");
-        String title = rs.getString("title");
-        String body = rs.getString("body");
-
-        Article article = new Article(id, title, body);
-        articles.add(article);
+      for(Map<String, Object> articleMap : articlesListMap) {
+        articles.add(new Article(articleMap));
       }
 
       if (articles.isEmpty()) {
@@ -122,41 +80,38 @@ public class App {
         return;
       }
 
-      System.out.println("번호 / 제목 / 내용 ");
+      System.out.println("번호 / 제목");
       for (Article article : articles) {
-        System.out.printf("%d / %s / %s\n", article.id, article.title, article.body);
+        System.out.printf("%d / %s\n", article.id, article.title);
+      }
+    } else if (rq.getUrlPath().equals("/usr/article/modify")) {
+      int id = rq.getIntParam("id", 0);
+
+      if (id == 0) {
+        System.out.println("id를 올바르게 입력해주세요.");
+        return;
       }
 
-    } catch (SQLException e) {
-      System.out.println("에러 : " + e);
+      System.out.printf("새 제목 : ");
+      String title = sc.nextLine();
+      System.out.printf("새 내용 : ");
+      String body = sc.nextLine();
+
+      SecSql sql = new SecSql();
+      sql.append("UPDATE article");
+      sql.append("SET updateDate = NOW()");
+      sql.append(", title = ?", title);
+      sql.append(", `body` = ?", body);
+      sql.append("WHERE id = ?", id);
+
+      MysqlUtil.update(sql);
+
+      System.out.printf("%d번 게시물이 수정되었습니다.\n", id);
+    } else if (rq.getUrlPath().equals("exit")) {
+      System.out.println("== 프로그램을 종료합니다 ==");
+      System.exit(0);
+    } else {
+      System.out.println("명령어를 잘못 입력하셨습니다.");
     }
-  }
-
-  private void modifyArticle(Connection conn, Scanner sc, Rq rq) {
-    int id = rq.getIntParam("id", 0);
-
-    if (id == 0) {
-      System.out.println("id를 올바르게 입력하시오");
-      return;
-    }
-
-    System.out.printf("새제목 : ");
-    String title = sc.nextLine();
-    System.out.printf("새내용 : ");
-    String body = sc.nextLine();
-
-    String sql = "UPDATE article";
-    sql += " SET updateDate = NOW()";
-    sql += ", title = \"" + title + "\"";
-    sql += ", `body` = \"" + body + "\"";
-    sql += " WHERE id = " + id;
-
-    try (PreparedStatement pstat = conn.prepareStatement(sql)) {
-      pstat.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println("에러 : " + e);
-    }
-
-    System.out.printf("%d번 게시물이 수정되었습니다.\n", id);
   }
 }

@@ -1,5 +1,7 @@
 package com.woori.jdbc.board;
 
+import com.woori.jdbc.board.util.Util;
+
 import java.util.Map;
 
 public class Rq {
